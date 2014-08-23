@@ -1,0 +1,12 @@
+{application, tile_serv,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { tile_serv_app, []}},
+  {env, []}
+ ]}.
