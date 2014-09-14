@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
-%%% @author yttrium
-%%% @copyright (C) 2014, <COMPANY>
+%%% @author Alexander Malev
+%%% @copyright (C) 2014
 %%% @doc
 %%%
 %%% @end
@@ -151,11 +151,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 loop(ListenSocket) ->
   {ok, Socket} = gen_tcp:accept(ListenSocket),
-  {ok, {http_request, _Method, {abs_path, Path}, _Version}} = gen_tcp:recv(Socket, 0),
-  gen_tcp:send(Socket, get_tile(Path)),
+  {ok, {http_request, _Method, {abs_path, Url}, _Version}} = gen_tcp:recv(Socket, 0),
+  ok = metatile:send_xyz(Url, Socket),
   gen_tcp:close(Socket),
   loop(ListenSocket).
-
-get_tile(Path) ->
-%%   io:format("Recv ~p~n",[Path]),
-  Path.

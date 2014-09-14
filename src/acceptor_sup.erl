@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------
-%%% @author yttrium
-%%% @copyright (C) 2014, <COMPANY>
+%%% @author Alexander Malev
+%%% @copyright (C) 2014
 %%% @doc
 %%%
 %%% @end
