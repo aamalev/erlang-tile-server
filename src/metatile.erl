@@ -76,7 +76,9 @@ url2xyz(<<H:8, Rest/binary>>, [N | Tail]) ->
 meta_url(Url) ->
   meta_url(Url, <<>>).
 meta_url(<<"#", H:8, L:8>>, Url) ->
-  {Url, (H - $0) * 10 + L - $0};
+  {<<?STORAGE/binary, Url/binary, ".meta">>, (H - $0) * 10 + L - $0};
+meta_url(<<".", _/binary>>, _) ->
+  {badurl, <<"Bad URL">>};
 meta_url(<<B:8, Rest/binary>>, Url) ->
   meta_url(Rest, <<Url/binary, B:8>>).
 

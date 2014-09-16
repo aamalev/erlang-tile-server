@@ -44,4 +44,5 @@ url2xyz_test_() ->
   ?_assertEqual({<<"Name">>, 123, 321, 456}, metatile:url2xyz(<<"/Name/123/321/456.png">>)).
 
 meta_url_test_() ->
-  ?_assertEqual({<<"/default/1/0/0/0/0/0.meta">>, 12}, metatile:meta_url(<<"/default/1/0/0/0/0/0.meta#12">>)).
+  ?_assertEqual({<<"/var/lib/mod_tile/default/1/0/0/0/0/0.meta">>, 12},
+    metatile:meta_url(<<"/default/1/0/0/0/0/0#12">>)).
