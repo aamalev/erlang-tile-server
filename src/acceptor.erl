@@ -151,7 +151,18 @@ code_change(_OldVsn, State, _Extra) ->
 
 loop(ListenSocket) ->
   {ok, Socket} = gen_tcp:accept(ListenSocket),
-  {ok, {http_request, _Method, {abs_path, Url}, _Version}} = gen_tcp:recv(Socket, 0),
-  ok = metatile:send_xyz(Url, Socket),
-  gen_tcp:close(Socket),
+  case gen_tcp:recv(Socket, 0) of
+    {ok, {http_request, _Method, {abs_path, Url}, _Version}} ->
+      case metatile:send_xyz(Url, Socket) of
+        {ok, _} ->
+          gen_tcp:close(Socket);
+        {size, _} ->
+          io:format(<<"Error size tile~n">>),
+          gen_tcp:close(Socket);
+        _ ->
+          io:format(<<"Error send tile~n">>)
+      end;
+    {error,closed} ->
+      io:format(<<"Error socket~n">>)
+  end,
   loop(ListenSocket).

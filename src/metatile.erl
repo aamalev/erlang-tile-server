@@ -52,14 +52,29 @@ read_meta(File) ->
 
 send_tile(Path, Socket, N) when is_binary(Path) ->
   {ok, File} = open(Path),
-  ok = send_tile(File, Socket, N),
+  Result = send_tile(File, Socket, N),
   close(File),
-  ok;
+  Result;
 send_tile(File, Socket, N) when is_record(File, file_descriptor) ->
   #metatile{tiles = ListTiles} = read_meta(File),
   {Offset, Size} = lists:nth(N + 1, ListTiles),
-  {ok, Size} = file:sendfile(File, Socket, Offset, Size, []),
-  ok.
+  case gen_tcp:send(Socket, [
+    <<"HTTP/1.1 200 OK\n">>,
+    <<"Content-Type: image/png\n">>,
+    io_lib:format(<<"Content-Length: ~p~n">>, [Size]),
+    <<"Server: Erlang-Tile-Server\n\n">>]) of
+    ok -> 
+      send_file(File, Socket, Offset, Size);
+    {error, Reason} ->
+      {error, Reason}
+  end.
+
+send_file(File, Socket, Offset, Size) ->
+  case file:sendfile(File, Socket, Offset, Size, []) of
+    {ok, Size} -> {ok, Size};
+    {ok, S} -> {size, S};
+    {error,closed} -> {error,closed}
+  end.
 
 url2xyz(<<"/", Rest/binary>>) ->
   url2xyz(Rest, [<<>>]).
