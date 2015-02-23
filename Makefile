@@ -1,16 +1,12 @@
-REBAR=~/bin/rebar
 
 compile: rebar
-	$(REBAR) compile
+	./rebar compile
 
-rebar: ~/bin/rebar
-
-~/bin/rebar:
-	git clone https://github.com/rebar/rebar.git
-	cd rebar && $(MAKE)
-	mkdir -p ~/bin
-	cp rebar/rebar ~/bin/
-	rm -fr rebar
+rebar:
+	git clone https://github.com/rebar/rebar.git rebar-git
+	cd rebar-git && $(MAKE)
+	cp rebar-git/rebar ./
+	rm -fr rebar-git
 
 run: compile
 	erl -pa ebin -sname tile_serv -eval 'application:start(tile_serv)'
