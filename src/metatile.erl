@@ -22,7 +22,7 @@ xyz_to_meta(Name, X, Y, Z) ->
   X0 = X band Mask,
   Y0 = Y band Mask,
   XY = [{X0 bsr 4 * S, Y0 bsr 4 * S} || S <- lists:seq(4, 0, -1)],
-  H = [((X band 16#0f) bsl 4) bor (Y band 16#0f) || {X, Y} <- XY],
+  H = [((Xm band 16#0f) bsl 4) bor (Ym band 16#0f) || {Xm, Ym} <- XY],
   ForPath = [?STORAGE, Name, Z | H],
   Path = io_lib:format(<<"~s/~s/~p/~p/~p/~p/~p/~p.meta">>, ForPath),
   list_to_binary(Path).
@@ -63,11 +63,11 @@ send_tile(File, Socket, N) when is_record(File, file_descriptor) ->
 
 url2xyz(<<"/", Rest/binary>>) ->
   url2xyz(Rest, [<<>>]).
-url2xyz(<<".", _/binary>>, NameXYZ) ->
-  [Z, Y, X, Name] = NameXYZ,
+url2xyz(<<".", _/binary>>, YXZName) ->
+  [Y, X, Z, Name] = YXZName,
   {Name, X, Y, Z};
-url2xyz(<<"/", Rest/binary>>, NameXYZ) ->
-  url2xyz(Rest, [0 | NameXYZ]);
+url2xyz(<<"/", Rest/binary>>, YXZName) ->
+  url2xyz(Rest, [0 | YXZName]);
 url2xyz(<<H:8, Rest/binary>>, [Name]) ->
   url2xyz(Rest, [<<Name/binary, H:8>>]);
 url2xyz(<<H:8, Rest/binary>>, [N | Tail]) ->

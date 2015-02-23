@@ -25,7 +25,19 @@ test_xyz() ->
     ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 1, 1, 0),
       <<"/var/lib/mod_tile/default/0/0/0/0/0/0.meta">>),
     ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 1, 0, 1),
-      <<"/var/lib/mod_tile/default/1/0/0/0/0/0.meta">>)
+      <<"/var/lib/mod_tile/default/1/0/0/0/0/0.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10924, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/42/8.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10925, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/42/8.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10926, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/42/8.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10927, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/42/8.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10928, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/43/0.meta">>),
+    ?_assertEqual(metatile:xyz_to_meta(<<"default">>, 16423, 10929, 15),
+      <<"/var/lib/mod_tile/default/15/0/66/10/43/0.meta">>)
   ].
 
 test_xyz_offset() ->
