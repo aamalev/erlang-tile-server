@@ -153,15 +153,37 @@ loop(ListenSocket) ->
   {ok, Socket} = gen_tcp:accept(ListenSocket),
   case gen_tcp:recv(Socket, 0) of
     {ok, {http_request, _Method, {abs_path, Url}, _Version}} ->
-      case metatile:send_xyz(Url, Socket) of
-        {ok, _} ->
-          gen_tcp:close(Socket);
-        {size, _} ->
-          io:format(<<"Error size tile~n">>),
-          gen_tcp:close(Socket);
+      try metatile:url2xyz(Url) of
+        {Name, X, Y, Z} ->
+          Path = metatile:xyz_to_meta(Name, X, Y, Z),
+          N = metatile:xyz_to_meta_offset(Name, X, Y, Z),
+          try metatile:send_tile(Path, Socket, N,
+              fun(Size) ->
+                tileview:headers200(Socket, Size)
+              end) of
+            {ok, _} -> ok;
+            {size, _} ->
+              io:format(<<"Error size tile~n">>);
+            {error, header} ->
+              io:format(<<"Error send header~n">>);
+            {error,_} ->
+              tileview:headers500(Socket),
+              io:format(<<"Error send tile~n">>)
+          catch
+            throw:file_not_found ->
+              tileview:headers404(Socket);
+            _:_ ->
+              tileview:headers500(Socket)
+          end;
         _ ->
-          io:format(<<"Error send tile~n">>)
-      end;
+          io:format(<<"NotTuple4~n">>)
+      catch
+        error:_ ->
+          tileview:headers404(Socket);
+        _:_ ->
+          io:format(<<"Error url~n">>)
+      end,
+      gen_tcp:close(Socket);
     {error,closed} ->
       io:format(<<"Error socket~n">>)
   end,

@@ -14,7 +14,7 @@
 
 %% API
 -export([xyz_to_meta/4, xyz_to_meta_offset/4, read_meta/1, url2xyz/1, meta_url/1]).
--export([send_xyz/2, send_meta/2, send_tile/3]).
+-export([send_xyz/3, send_meta/3, send_tile/4]).
 
 
 xyz_to_meta(Name, X, Y, Z) ->
@@ -50,23 +50,28 @@ read_meta(File) ->
   ListTiles = [{Offset, Size} || <<Offset:32/native, Size:32/native>> <= Tiles],
   #metatile{x = X, y = Y, z = Z, tiles = ListTiles}.
 
-send_tile(Path, Socket, N) when is_binary(Path) ->
-  {ok, File} = open(Path),
-  Result = send_tile(File, Socket, N),
-  close(File),
-  Result;
-send_tile(File, Socket, N) when is_record(File, file_descriptor) ->
+send_tile(Path, Socket, N, PreSend) when is_binary(Path) ->
+  case open(Path) of
+    {ok, File} ->
+      case send_tile(File, Socket, N, PreSend) of
+        {ok, Result} ->
+          close(File),
+          {ok, Result};
+        {error, _} ->
+          close(File),
+          throw(file_not_found)
+      end;
+    _ ->
+      throw(openfile)
+  end;
+send_tile(File, Socket, N, PreSend) when is_record(File, file_descriptor) ->
   #metatile{tiles = ListTiles} = read_meta(File),
   {Offset, Size} = lists:nth(N + 1, ListTiles),
-  case gen_tcp:send(Socket, [
-    <<"HTTP/1.1 200 OK\n">>,
-    <<"Content-Type: image/png\n">>,
-    io_lib:format(<<"Content-Length: ~p~n">>, [Size]),
-    <<"Server: Erlang-Tile-Server\n\n">>]) of
-    ok -> 
+  case PreSend(Size) of
+    ok ->
       send_file(File, Socket, Offset, Size);
-    {error, Reason} ->
-      {error, Reason}
+    {error, _} ->
+      {error, header}
   end.
 
 send_file(File, Socket, Offset, Size) ->
@@ -97,12 +102,12 @@ meta_url(<<".", _/binary>>, _) ->
 meta_url(<<B:8, Rest/binary>>, Url) ->
   meta_url(Rest, <<Url/binary, B:8>>).
 
-send_xyz(URL, Socket) ->
+send_xyz(URL, Socket, PreSend) ->
   {Name, X, Y, Z} = url2xyz(URL),
   Path = xyz_to_meta(Name, X, Y, Z),
   N = xyz_to_meta_offset(Name, X, Y, Z),
-  send_tile(Path, Socket, N).
+  send_tile(Path, Socket, N, PreSend).
 
-send_meta(URL, Socket) ->
+send_meta(URL, Socket, PreSend) ->
   {Path, N} = meta_url(URL),
-  send_tile(Path, Socket, N).
+  send_tile(Path, Socket, N, PreSend).
