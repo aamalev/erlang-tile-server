@@ -1,6 +1,7 @@
+REBAR=./rebar
 
-compile: rebar
-	./rebar compile
+compile: $(REBAR)
+	$(REBAR) compile
 
 rebar:
 	git clone https://github.com/rebar/rebar.git rebar-git
